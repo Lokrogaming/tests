@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>LG NewsChannel Debug</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        padding: 20px;
+    }
+    h1 { text-align: center; }
+    #news-container {
+        max-width: 600px;
+        margin: auto;
+    }
+    .message {
+        border: 2px solid #ccc;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        background: white;
+        transition: all 0.3s ease-in-out;
+    }
+    .message.dringend {
+        border-color: red;
+        background: #ffe5e5;
+    }
+    .icon {
+        font-size: 24px;
+        margin-right: 8px;
+    }
+    .title {
+        font-weight: bold;
+        font-size: 18px;
+    }
+    .author {
+        font-size: 12px;
+        color: #666;
+    }
+</style>
+</head>
+<body>
+
+<h1>LG NewsChannel Debug</h1>
+<div id="status">Lade Nachrichten...</div>
+<div id="news-container"></div>
+
+<script>
+const API_URL = "https://lg-newschannel.xo.je/news.php?nocache=" + Date.now();
+
+fetch(API_URL)
+  .then(response => {
+      if (!response.ok) {
+          throw new Error(`HTTP-Fehler: ${response.status}`);
+      }
+      return response.json();
+  })
+  .then(data => {
+      console.log("Empfangene Daten:", data); // Debug in Konsole
+      document.getElementById("status").textContent = "Nachrichten geladen.";
+
+      if (!Array.isArray(data) || data.length === 0) {
+          document.getElementById("news-container").innerHTML = "<p>Keine Nachrichten vorhanden.</p>";
+          return;
+      }
+
+      renderMessages(data);
+  })
+  .catch(error => {
+      console.error("Fehler beim Laden:", error);
+      document.getElementById("status").textContent = "Fehler beim Laden der Nachrichten.";
+  });
+
+function renderMessages(messages) {
+    const container = document.getElementById("news-container");
+    container.innerHTML = "";
+    messages.forEach(msg => {
+        const div = document.createElement("div");
+        div.className = "message" + (msg.tag && msg.tag.toLowerCase() === "dringend" ? " dringend" : "");
+        
+        div.innerHTML = `
+            <div><span class="icon">${msg.icon || "💬"}</span>
+            <span class="title">${msg.title || "Ohne Titel"}</span></div>
+            <div>${msg.message || ""}</div>
+            <div class="author">${msg.author ? "Von: " + msg.author : ""}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+</script>
+
+</body>
+</html>
